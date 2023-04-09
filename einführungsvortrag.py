@@ -1,4 +1,5 @@
 from manimlib import *
+from scipy.integrate import odeint
 
 
 Lg_formula_config = {
@@ -485,6 +486,13 @@ class Vortrag(Scene):
             bg,
             magnitude_range = (0,8)
         )
+        anim_lines = AnimatedStreamLines(
+            StreamLines(
+                lambda x,y: np.array([x+y,x-y]),
+                bg,
+                magnitude_range = (0,5)
+            )
+        )
         title = Text(
             "Tutorium Analysis II", 
             font_size=72
@@ -516,8 +524,10 @@ class Vortrag(Scene):
         underline.scale(1.25)
 
 
-        self.add(bg, field, lines)
+        self.add(bg, field, lines, anim_lines)
         self.add(rect, title1)
+        self.interact()
+        self.remove(anim_lines)
         self.interact()
         ## Ende
 
@@ -596,15 +606,7 @@ class Vortrag(Scene):
         grav_vec_label = Tex(
             "\\vec{F}_G"
         ).set_color(YELLOW).next_to(grav_vec, LEFT)
-        self.interact()
-        self.play(
-            ShowCreation(
-                grav_vec
-            ),
-            ShowCreation(
-                grav_vec_label
-            )
-        )
+        #self.interact()
         massenpunkt1 = VGroup(
             Text("Ruhelage:"), 
             Tex("(x(0),y(0))=(0,-L)")
@@ -656,13 +658,22 @@ class Vortrag(Scene):
         eq9 = Tex(
             "\\theta(t)=\\theta_0 \\cos(\\sqrt{g/L}t)"
         ).to_edge(RIGHT, buff=3*LARGE_BUFF)
-        self.interact()
+        #self.interact()
         self.play(Write(massenpunkt1))
         self.interact()
         self.play(Write(massenpunkt2))
         self.interact()
         self.play(
             Transform(massenpunkt2, massenpunkt3)
+        )
+        self.interact()
+        self.play(
+            ShowCreation(
+                grav_vec
+            ),
+            ShowCreation(
+                grav_vec_label
+            )
         )
         self.interact()
         self.play(
@@ -769,7 +780,7 @@ class Vortrag(Scene):
         self.show_state_with_pair_of_numbers()
         self.interact()
         self.show_evolution_from_a_start_state()
-    ## Ende
+    # Ende
 
 
     ## Teil 4
@@ -785,17 +796,18 @@ class Vortrag(Scene):
             self.h_line,
             self.v_line
         )
+        self.interact()
+        self.show_acceleration_dependence()
+        self.interact()
         self.play(
             Write(field2)
         )
         self.interact()
-        self.show_acceleration_dependence()
-        self.interact
         self.add_flexible_state()
         st = self.state
         dot = self.get_state_dot(st)
         self.search_set = VGroup(dot)
-        self.tie_state_to_dot_position(self.state, dot)
+        self.tie_state_to_dot_position(st, dot)
         self.add(dot)
         self.interact()
         self.play(
@@ -806,11 +818,26 @@ class Vortrag(Scene):
             dot.animate.move_to(self.plane.c2p(1/2,0))
         )
         self.interact()
-        traj = self.get_evolving_trajectory(dot).set_stroke(BLUE_E, 4)
-        self.add(traj)
-        st.pendulum.clear_updaters(recurse=False)
-        self.tie_dot_position_to_state(dot, st)
-        st.pendulum.start_swinging()
+        trace = self.get_evolving_trajectory(dot).set_stroke(BLUE_E, 4)
+        path = self.get_path(
+            [dot.get_center()[0],dot.get_center()[1]]
+        ).set_opacity(0)
+        self.interact()
+        self.add(trace)
+        self.play(
+            ShowCreation(
+                path,
+                rate_func=linear,
+            ),
+            UpdateFromFunc(
+                dot, lambda d: d.move_to(path.get_points()[-1])
+            ),
+            run_time = 20
+        )
+        self.interact()
+        self.remove(trace, path)
+        self.interact()
+        self.interact()
         self.interact()
     ## Ende
     
@@ -839,6 +866,24 @@ class Vortrag(Scene):
     #                 Definitionen                  #
     ################################################# 
 
+    def get_path(self, pos):
+
+        def DGL(t, point):
+            x_dot = self.vector_field_func(point[0],point[1])[0]
+            y_dot = self.vector_field_func(point[0],point[1])[1]
+            return [x_dot, y_dot]
+        
+        def path(init): 
+            grid = np.arange(0.0, 60.0, 0.01)
+            res = odeint(DGL, init, grid, tfirst=True)
+            p = VMobject()
+            p.set_points_as_corners([*[[a,b,0] for a,b in zip(res[:,0],res[:,1])]])
+            p.set_stroke(None,1)
+            p.make_smooth() 
+            return p
+        
+        return path(pos)
+        
 
     def add_pendulum(self):
         pendulum = self.pendulum = Pendulum(**self.pendulum_config)
@@ -1268,17 +1313,8 @@ class Vortrag(Scene):
     def get_evolving_trajectory(self, mobject):
         trajectory = TracedPath(
             lambda: mobject.get_center()
-        ).set_stroke(BLUE_E, 3)
+        ).set_stroke(RED, 3)
         return trajectory
-
-
-    # def initialize_vector_field(self):
-    #     self.vector_field = VectorField(
-    #         self.vector_field_func,
-    #         self.plane,
-    #         **self.vector_field_config,
-    #     )
-    #     self.vector_field.sort(get_norm)
 
 
     def add_flexible_state(self):
