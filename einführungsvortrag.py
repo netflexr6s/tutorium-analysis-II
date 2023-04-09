@@ -79,12 +79,7 @@ class Pendulum(VGroup):
         "weight_style": {
             "stroke_width": 0,
             "fill_opacity": 1,
-            "fill_color": GREY_BROWN,
-            #"sheen_direction": UL,
-            #"sheen_factor": 0.5,
-            # "background_stroke_color": BLACK,
-            # "background_stroke_width": 3,
-            # "background_stroke_opacity": 0.5,
+            "fill_color": GREY_BROWN, 
         },
         "dashed_line_config": {
             "num_dashes": 25,
@@ -132,7 +127,6 @@ class Pendulum(VGroup):
     def create_rod(self):
         rod = self.rod = Line(UP, DOWN)
         rod.set_height(self.length)
-        #rod.set_style(**self.rod_style)
         rod.move_to(self.get_fixed_point(), UP)
         self.add(rod)
 
@@ -164,7 +158,6 @@ class Pendulum(VGroup):
         self.add(self.angle_arc)
 
     def get_arc_angle_theta(self):
-        # Might be changed in certain scenes
         return self.get_theta()
 
     def add_velocity_vector(self):
