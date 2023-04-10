@@ -79,7 +79,12 @@ class Pendulum(VGroup):
         "weight_style": {
             "stroke_width": 0,
             "fill_opacity": 1,
-            "fill_color": GREY_BROWN, 
+            "fill_color": GREY_BROWN,
+            #"sheen_direction": UL,
+            #"sheen_factor": 0.5,
+            # "background_stroke_color": BLACK,
+            # "background_stroke_width": 3,
+            # "background_stroke_opacity": 0.5,
         },
         "dashed_line_config": {
             "num_dashes": 25,
@@ -127,6 +132,7 @@ class Pendulum(VGroup):
     def create_rod(self):
         rod = self.rod = Line(UP, DOWN)
         rod.set_height(self.length)
+        #rod.set_style(**self.rod_style)
         rod.move_to(self.get_fixed_point(), UP)
         self.add(rod)
 
@@ -158,6 +164,7 @@ class Pendulum(VGroup):
         self.add(self.angle_arc)
 
     def get_arc_angle_theta(self):
+        # Might be changed in certain scenes
         return self.get_theta()
 
     def add_velocity_vector(self):
@@ -483,7 +490,7 @@ class Vortrag(Scene):
             StreamLines(
                 lambda x,y: np.array([x+y,x-y]),
                 bg,
-                magnitude_range = (0,5)
+                magnitude_range = (0,25)
             )
         )
         title = Text(
@@ -531,11 +538,19 @@ class Vortrag(Scene):
             lines,
             bg
         )
+        self.interact()
         self.play(
-            FadeOut(subtitle),
-            FadeOut(rect),
-            title.animate.to_edge(UP, buff=MED_SMALL_BUFF),
-            FadeIn(underline)
+            LaggedStart(
+                AnimationGroup(
+                    FadeOut(subtitle),
+                    FadeOut(rect)
+                ),
+                AnimationGroup(
+                    title.animate.to_edge(UP, buff=MED_SMALL_BUFF),
+                    FadeIn(underline)
+                ),
+                lag_ratio = 0.8
+            )
         )
         self.interact()
         list.fade_all_but(0, opacity=0.2)
@@ -558,7 +573,7 @@ class Vortrag(Scene):
             LaggedStart(
                 FadeOut(Group(*self.mobjects)),
                 Write(text),
-                lag_ratio = 2*DEFAULT_LAGGED_START_LAG_RATIO
+                lag_ratio =3*DEFAULT_LAGGED_START_LAG_RATIO
             )
         )
         pend = Pendulum(
@@ -574,7 +589,6 @@ class Vortrag(Scene):
         )
         self.interact()
         pend.start_swinging()
-        self.interact()
         pend1 = Pendulum(initial_theta = 0.7).to_edge(LEFT).shift(0.5*RIGHT)
         L = Tex(
             "L"
@@ -582,14 +596,18 @@ class Vortrag(Scene):
         m = Tex(
             "m"
         ).next_to(pend1.weight.get_center(), 2*RIGHT)
+        self.interact()
         pend.end_swinging()
         self.play(
+            Transform(pend, pend1),
+            run_time = 2
+        )
+        self.interact()
+        self.play(
             LaggedStart(
-                FadeOut(pend),
-                ShowCreation(pend1),
                 Write(L),
                 Write(m),
-                lag_ratio = 2*DEFAULT_LAGGED_START_LAG_RATIO
+                lag_ratio = 0.03
             )
         )
         grav_vec = Arrow(
@@ -599,59 +617,92 @@ class Vortrag(Scene):
         grav_vec_label = Tex(
             "\\vec{F}_G"
         ).set_color(YELLOW).next_to(grav_vec, LEFT)
-        #self.interact()
+        
+
         massenpunkt1 = VGroup(
             Text("Ruhelage:"), 
-            Tex("(x(0),y(0))=(0,-L)")
+            Tex("(", "x", "(", "0", ")", ",", "y", "(", "0", ")", ")", "=", "(", "0", ",","-","L",")")
         ).arrange(RIGHT, buff=MED_SMALL_BUFF)
         massenpunkt1.to_corner(UR, buff=LARGE_BUFF)
+
+
         massenpunkt2 = Tex(
-            "(x(\\theta),y(\\theta))= ?"
+            "(x(\\theta),y(\\theta))","=", "?"
         ).next_to(massenpunkt1, DOWN, buff=MED_SMALL_BUFF)
+
+
         massenpunkt3 = Tex(
-            "(x(\\theta),y(\\theta))=(L\\sin(\\theta),-L\\cos(\\theta))"
+            "(x(\\theta),y(\\theta))","=", "(L\\sin(\\theta),L\\cos(\\theta))"
         ).next_to(massenpunkt1, DOWN, buff=MED_SMALL_BUFF)
+
+
         mgFma = Tex(
-            "m(0,-g)=\\vec F_G = m \\vec a"
+            "m","(0,-g)","=","\\vec F_G", "=", "m", "\\vec a"
         ).next_to(massenpunkt3, DOWN, buff=LARGE_BUFF)
+
+
         mgFma2 = Tex(
-            "m(0,-g)=m(\\ddot x, \\ddot y)"
+            "m","(0,-g)","=", "m", "(\\ddot x,\\ddot y)"
         ).next_to(massenpunkt3, DOWN, buff=LARGE_BUFF)
+
+
         mgFma3 = Tex(
-            "(0,-g)=(\\ddot x, \\ddot y)"
+            " ", "(0,-g)","=", " ", "(\\ddot x,\\ddot y)"
         ).next_to(massenpunkt3, DOWN, buff=LARGE_BUFF)
+
+
         eq1 = Tex(
-            "\\ddot \\theta \\cos(\\theta)=(\\dot \\theta)^2 \\sin(\\theta)"
+            "\\ddot \\theta", "\\cos(\\theta)", "=", "(", "\\dot \\theta", ")^2", "\\sin(\\theta)"
         )
+
+
         eq2 = Tex(
-            "-g=L\\ddot \\theta \\sin(\\theta)+L(\\dot \\theta)^2 \\cos(\\theta)"
+            "-", "g", "=", "L", "\\ddot \\theta \\sin(\\theta)", "+", "L", "(\\dot \\theta)^2 \\cos(\\theta)"
         )
+
+
         eq = VGroup(eq1, eq2).arrange(DOWN, buff=MED_SMALL_BUFF)
         eq3 = Tex(
-            "-\\frac{g}{L}=\\ddot \\theta \\sin(\\theta)+(\\dot \\theta)^2 \\cos(\\theta)"
+            "-", "\\frac{g}{L}", "=", "\\ddot \\theta \\sin(\\theta)", "+", "(\\dot \\theta)^2 \\cos(\\theta)"
         ).next_to(eq[0], DOWN, buff=MED_SMALL_BUFF)
+
+
         eq4 = Tex(
-            "-\\frac{g}{L}\\sin(\\theta)=\\ddot \\theta \\sin^2(\\theta)+(\\dot \\theta)^2 \\sin(\\theta)\\cos(\\theta)"
+            "-", "\\frac{g}{L}", "\\sin(\\theta)", "=", "\\ddot \\theta \\sin(\\theta)", "\\sin(\\theta)", "+", 
+            "(\\dot \\theta)^2 \\cos(\\theta)", "\\sin(\\theta)"
         ).next_to(eq[0], DOWN, buff=MED_SMALL_BUFF)
+
+
         eq5 = Tex(
-            "\\ddot \\theta=-\\frac{g}{L}\\sin(\\theta)"
+            "\\ddot \\theta", " ", "=", "-", "\\frac{g}{L}\\sin", "(\\theta)"
         )
+
+
         eq6 = Tex(
-            "\\ddot \\theta(t)=-\\frac{g}{L}\\sin(\\theta(t))"
+            "\\ddot \\theta", "(t)", "=", "-", "\\frac{g}{L}\\sin", "(\\theta(t))"
         ).to_edge(RIGHT, buff=3.8*LARGE_BUFF)
+
+
         undjetzt = Text(
             "Und jetzt?"
         ).to_edge(RIGHT, buff=5*LARGE_BUFF)
+
+
         eq7 = Tex(
-            "|\\theta(t)| \\ll 1 \\Rightarrow \\ddot \\theta(t) \\approx-\\frac{g}{L}\\theta(t)"
+            "|\\theta(t)| \\ll 1 \\Rightarrow", "\\ddot \\theta(t)", "\\approx", "-\\frac{g}{L}\\theta(t)"
         ).to_edge(RIGHT, buff=2.5*LARGE_BUFF)
+
+
         eq8 = Tex(
-            "\\ddot \\theta(t) =-\\frac{g}{L}\\theta(t)"
+            " ", "\\ddot \\theta(t)", "=", "-\\frac{g}{L}\\theta(t)"
         ).to_edge(RIGHT, buff=4*LARGE_BUFF).shift(1.5*UP)
+
+
         eq9 = Tex(
             "\\theta(t)=\\theta_0 \\cos(\\sqrt{g/L}t)"
         ).to_edge(RIGHT, buff=3*LARGE_BUFF)
-        #self.interact()
+
+        self.interact()
         self.play(Write(massenpunkt1))
         self.interact()
         self.play(Write(massenpunkt2))
@@ -675,17 +726,17 @@ class Vortrag(Scene):
         )
         self.interact()
         self.play(
-            Transform(mgFma, mgFma2)
+            TransformMatchingTex(mgFma, mgFma2)
         )
         self.interact()
         self.play(
-            Transform(mgFma, mgFma3)
+            TransformMatchingTex(mgFma2, mgFma3)
         )
         self.interact()
         self.play(
             FadeOut(
                 Group(
-                    mgFma, L, m,
+                    mgFma3, L, m,
                     pend1, grav_vec, grav_vec_label
                 )
             ),
@@ -693,19 +744,20 @@ class Vortrag(Scene):
         )
         self.interact()
         self.play(
-            Transform(
+            TransformMatchingTex(
                 eq[1], eq3
             )
         )
         self.interact()
         self.play(
-            Transform(
-                eq[1], eq4
+            TransformMatchingTex(
+                eq3, eq4
             )
         )
         self.interact()
         self.play(
-            FadeOut(eq),
+            FadeOut(eq[0]),
+            FadeOut(eq4),
             Write(eq5)
         )
         self.interact()
@@ -720,13 +772,13 @@ class Vortrag(Scene):
         )
         self.interact()
         self.play(
-            Transform(
+            TransformMatchingTex(
                 eq5, eq6
             )
         )
         self.interact()
         self.play(
-            eq5.animate.shift(1.5*UP),
+            eq6.animate.shift(1.5*UP),
             Write(undjetzt)
         )
         self.interact()
@@ -736,12 +788,12 @@ class Vortrag(Scene):
         )
         self.interact()
         self.play(
-            FadeOut(eq5),
+            FadeOut(eq6),
             eq7.animate.shift(1.5*UP)
         )
-        self.wait()
+        self.interact()
         self.play(
-            Transform(eq7, eq8)
+            TransformMatchingTex(eq7, eq8)
         )
         self.interact()
         self.play(
