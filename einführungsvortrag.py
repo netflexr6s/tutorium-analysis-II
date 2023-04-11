@@ -507,12 +507,13 @@ class Vortrag(Scene):
             subtitle
         ).arrange(DOWN, buff = MED_SMALL_BUFF)
         rect = BackgroundRectangle(title1).scale(1.2)
-
+        
+        itempool_link = Text("itempool.com/tutorium/live").set_color(BLUE)
         list = BulletedList(
             *[
                 "Termine: Montag, Mittwoch, Freitag", 
                 "Buch: Immer via Webseite aufrufen",
-                "Zum Mitmachen: itempool.com/tutorium/live"
+                f"Zum Mitmachen: {itempool_link.get_text()}"
             ]
         )
         title2 = Text(
@@ -529,10 +530,10 @@ class Vortrag(Scene):
         self.interact()
         self.remove(anim_lines)
         self.interact()
-        ## Ende
+    ## Ende
 
         
-        ## Teil 1
+    ## Teil 1
         self.remove(
             field,
             lines,
@@ -542,7 +543,7 @@ class Vortrag(Scene):
         self.play(
             LaggedStart(
                 AnimationGroup(
-                    FadeOut(subtitle),
+                    Uncreate(subtitle),
                     FadeOut(rect)
                 ),
                 AnimationGroup(
@@ -583,8 +584,11 @@ class Vortrag(Scene):
         ).scale(1.25)
         self.interact()
         self.play(
-            FadeOut(text),
-            ShowCreation(pend),
+            LaggedStart(
+                Uncreate(text),
+                ShowCreation(pend),
+                lag_ratio = 0.1
+            ),
             run_time = 2
         )
         self.interact()
@@ -607,7 +611,7 @@ class Vortrag(Scene):
             LaggedStart(
                 Write(L),
                 Write(m),
-                lag_ratio = 0.03
+                lag_ratio = 0.1
             )
         )
         grav_vec = Arrow(
@@ -632,7 +636,7 @@ class Vortrag(Scene):
 
 
         massenpunkt3 = Tex(
-            "(x(\\theta),y(\\theta))","=", "(L\\sin(\\theta),L\\cos(\\theta))"
+            "(x(\\theta),y(\\theta))","=", "(L\\sin(\\theta),-L\\cos(\\theta))"
         ).next_to(massenpunkt1, DOWN, buff=MED_SMALL_BUFF)
 
 
@@ -642,7 +646,7 @@ class Vortrag(Scene):
 
 
         mgFma2 = Tex(
-            "m","(0,-g)","=", "m", "(\\ddot x,\\ddot y)"
+            "m","(0,-g)","=", " ", " ", "m", "(\\ddot x,\\ddot y)"
         ).next_to(massenpunkt3, DOWN, buff=LARGE_BUFF)
 
 
@@ -650,7 +654,9 @@ class Vortrag(Scene):
             " ", "(0,-g)","=", " ", "(\\ddot x,\\ddot y)"
         ).next_to(massenpunkt3, DOWN, buff=LARGE_BUFF)
 
-
+        self.interact()
+        self.play(Write(massenpunkt1))
+        
         eq1 = Tex(
             "\\ddot \\theta", "\\cos(\\theta)", "=", "(", "\\dot \\theta", ")^2", "\\sin(\\theta)"
         )
@@ -670,6 +676,18 @@ class Vortrag(Scene):
         eq4 = Tex(
             "-", "\\frac{g}{L}", "\\sin(\\theta)", "=", "\\ddot \\theta \\sin(\\theta)", "\\sin(\\theta)", "+", 
             "(\\dot \\theta)^2 \\cos(\\theta)", "\\sin(\\theta)"
+        ).next_to(eq[0], DOWN, buff=MED_SMALL_BUFF)
+
+
+        eq4s1 = Tex(
+            "-", "\\frac{g}{L}", "\\sin(\\theta)", "=", "\\ddot \\theta \\sin^2(\\theta)", " ", "+", 
+            "\\ddot \\theta \\cos^2(\\theta)", " "
+        ).next_to(eq[0], DOWN, buff=MED_SMALL_BUFF)
+
+
+        eq4s2 = Tex(
+            "-", "\\frac{g}{L}", "\\sin(\\theta)", "=", "\\ddot \\theta", "(", "\\sin^2(\\theta)", " ", "+", 
+            "\\cos^2(\\theta)", ")"
         ).next_to(eq[0], DOWN, buff=MED_SMALL_BUFF)
 
 
@@ -702,8 +720,11 @@ class Vortrag(Scene):
             "\\theta(t)=\\theta_0 \\cos(\\sqrt{g/L}t)"
         ).to_edge(RIGHT, buff=3*LARGE_BUFF)
 
-        self.interact()
-        self.play(Write(massenpunkt1))
+        thetaoft = Tex(
+            "\\theta", "(", "t", ")", "=", "?"
+        ).next_to(massenpunkt3, DOWN, buff=LARGE_BUFF)
+        
+    
         self.interact()
         self.play(Write(massenpunkt2))
         self.interact()
@@ -721,6 +742,11 @@ class Vortrag(Scene):
         )
         self.interact()
         self.play(
+            Write(thetaoft)
+        )
+        self.interact()
+        self.play(
+            FadeOut(thetaoft),
             FadeOut(massenpunkt1),
             TransformMatchingTex(massenpunkt2, mgFma)
         )
@@ -737,7 +763,7 @@ class Vortrag(Scene):
             FadeOut(
                 Group(
                     mgFma3, L, m,
-                    pend1, grav_vec, grav_vec_label
+                    pend, grav_vec, grav_vec_label
                 )
             ),
             Write(eq)
@@ -756,15 +782,27 @@ class Vortrag(Scene):
         )
         self.interact()
         self.play(
+            TransformMatchingTex(
+                eq4, eq4s1
+            )
+        )
+        self.interact()
+        self.play(
+            TransformMatchingTex(
+                eq4s1, eq4s2
+            )
+        )
+        self.interact()
+        self.play(
             FadeOut(eq[0]),
-            FadeOut(eq4),
+            FadeOut(eq4s2),
             Write(eq5)
         )
         self.interact()
         self.play(
             FadeIn(
                 Group(
-                    L, m, pend1, 
+                    L, m, pend, 
                     grav_vec, grav_vec_label
                 )
             ),
