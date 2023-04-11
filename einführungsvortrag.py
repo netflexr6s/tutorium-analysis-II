@@ -80,11 +80,6 @@ class Pendulum(VGroup):
             "stroke_width": 0,
             "fill_opacity": 1,
             "fill_color": GREY_BROWN,
-            #"sheen_direction": UL,
-            #"sheen_factor": 0.5,
-            # "background_stroke_color": BLACK,
-            # "background_stroke_width": 3,
-            # "background_stroke_opacity": 0.5,
         },
         "dashed_line_config": {
             "num_dashes": 25,
